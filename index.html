@@ -14,6 +14,7 @@
         .post .content { display: none; white-space: pre-line; margin-top: 10px; }
         .post button { display: block; margin-top: 5px; }
         .footer { margin-top: 20px; font-size: 14px; color: gray; }
+        img { max-width: 100%; height: auto; display: block; margin: 10px auto; }
     </style>
 </head>
 <body oncontextmenu="return false;" onselectstart="return false;" ondragstart="return false;"> <!-- 禁止右键、选择、拖拽 -->
@@ -41,54 +42,87 @@
         localStorage.viewCount = parseInt(localStorage.viewCount) + 1;
         document.getElementById("viewCount").textContent = localStorage.viewCount;
 
-        // **获取 GitHub Issues**
+        // **获取 GitHub Issues 并处理图片**
         async function fetchIssues() {
-    const username = "joinliving";
-    const repo = "puppy";
-    const url = `https://api.github.com/repos/${username}/${repo}/issues?state=open`;
+            const username = "joinliving";
+            const repo = "puppy";
+            const url = `https://api.github.com/repos/${username}/${repo}/issues?state=open`;
 
-    try {
-        const response = await fetch(url);
-        const issues = await response.json();
-        const contentDiv = document.getElementById("content");
-        contentDiv.innerHTML = "";
+            try {
+                const response = await fetch(url);
+                const issues = await response.json();
+                const contentDiv = document.getElementById("content");
+                contentDiv.innerHTML = "";
 
-        issues.forEach(issue => {
-            const post = document.createElement("div");
-            post.classList.add("post");
+                issues.forEach(issue => {
+                    const post = document.createElement("div");
+                    post.classList.add("post");
 
-            const title = document.createElement("h2");
-            title.textContent = issue.title;
+                    const title = document.createElement("h2");
+                    title.textContent = issue.title;
 
-            const content = document.createElement("p");
-            content.classList.add("content");
-            let bodyHtml = issue.body.replace(/\n/g, "<br>"); // 处理换行
-            bodyHtml = bodyHtml.replace(/!\[.*?\]\((.*?)\)/g, '<img src="$1" style="max-width:100%; height:auto;">'); // 解析 Markdown 图片
+                    const content = document.createElement("p");
+                    content.classList.add("content");
+                    let bodyHtml = issue.body.replace(/\n/g, "<br>"); // 处理换行
+                    bodyHtml = bodyHtml.replace(/!\[.*?\]\((.*?)\)/g, '<img class="watermarked" src="$1">'); // 解析 Markdown 图片
 
-            content.innerHTML = bodyHtml;
+                    content.innerHTML = bodyHtml;
 
-            const toggleButton = document.createElement("button");
-            toggleButton.textContent = "展开正文";
-            toggleButton.onclick = function () {
-                if (content.style.display === "none" || content.style.display === "") {
-                    content.style.display = "block";
-                    toggleButton.textContent = "收起正文";
-                } else {
-                    content.style.display = "none";
+                    const toggleButton = document.createElement("button");
                     toggleButton.textContent = "展开正文";
-                }
-            };
+                    toggleButton.onclick = function () {
+                        if (content.style.display === "none" || content.style.display === "") {
+                            content.style.display = "block";
+                            toggleButton.textContent = "收起正文";
+                        } else {
+                            content.style.display = "none";
+                            toggleButton.textContent = "展开正文";
+                        }
+                    };
 
-            post.appendChild(title);
-            post.appendChild(toggleButton);
-            post.appendChild(content);
-            contentDiv.appendChild(post);
-        });
+                    post.appendChild(title);
+                    post.appendChild(toggleButton);
+                    post.appendChild(content);
+                    contentDiv.appendChild(post);
+                });
 
-    } catch (error) {
-        document.getElementById("content").textContent = "加载失败，请检查 GitHub 配置";
-    }
-}
+                // **所有图片加水印**
+                addWatermarkToImages();
+
+            } catch (error) {
+                document.getElementById("content").textContent = "加载失败，请检查 GitHub 配置";
+            }
+        }
+
+        // **前端水印处理**
+        function addWatermarkToImages() {
+            document.querySelectorAll(".watermarked").forEach(img => {
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+
+                img.onload = function () {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+
+                    // 画原图
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                    // 设置水印样式
+                    ctx.font = "20px Arial";
+                    ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+                    ctx.textAlign = "right";
+
+                    // 添加水印
+                    ctx.fillText("山雀大王", canvas.width - 20, canvas.height - 50);
+                    ctx.fillText("oloiyy@163.com", canvas.width - 20, canvas.height - 20);
+
+                    // 替换原图
+                    img.src = canvas.toDataURL("image/png");
+                };
+            });
+        }
+
+        // **加载 Issues**
         fetchIssues();
     </script>
 </body>
