@@ -24,7 +24,7 @@
 
     <!-- **主分类导航栏（五个大类别）** -->
     <div class="nav" id="mainNav"></div>
-    <!-- **子分类导航栏（小标签）** -->
+    <!-- **子分类导航栏（小标签，默认隐藏）** -->
     <div class="nav sub-nav" id="subNav"></div>
 
     <h2>最新作品</h2>
@@ -47,6 +47,9 @@
         // **五个主分类**
         const mainCategories = ["小说-同人", "小说-原创", "画画-同人", "画画-原创", "画画-课程跟画"];
 
+        let categoryMap = {}; // 记录主分类和对应的小分类
+        let postList = [];
+
         // **获取 GitHub Issues**
         async function fetchIssues() {
             const username = "joinliving";  // GitHub 用户名
@@ -58,13 +61,8 @@
                 const issues = await response.json();
                 const contentDiv = document.getElementById("content");
                 const mainNav = document.getElementById("mainNav");
-                const subNav = document.getElementById("subNav");
                 contentDiv.innerHTML = "";
                 mainNav.innerHTML = "";
-                subNav.innerHTML = "";
-
-                let categoryMap = {}; // 大类-小类对应关系
-                let postList = [];
 
                 // **初始化主分类**
                 mainCategories.forEach(cat => categoryMap[cat] = new Set());
@@ -74,12 +72,11 @@
                     let tags = issue.body.match(/#\S+/g) || [];
                     tags = tags.map(tag => tag.replace("#", "")); // 去掉 `#`
 
-                    let mainTag = tags.find(tag => mainCategories.includes(tag)); // 找大分类
-                    let subTags = tags.filter(tag => !mainCategories.includes(tag)); // 剩下的就是小标签
+                    let mainTag = tags.find(tag => mainCategories.includes(tag)); // 找到主分类
+                    let subTags = tags.filter(tag => !mainCategories.includes(tag)); // 剩下的是小标签
 
-                    // **存入对应分类**
                     if (mainTag) {
-                        subTags.forEach(sub => categoryMap[mainTag].add(sub));
+                        subTags.forEach(sub => categoryMap[mainTag].add(sub)); // 存入对应分类
 
                         const post = document.createElement("div");
                         post.classList.add("post");
@@ -111,14 +108,17 @@
             subNav.innerHTML = ""; // 清空子分类
             subNav.style.display = "block"; // 显示子分类栏
 
-            // **找到主分类对应的小标签**
             const subTags = [...categoryMap[mainTag]];
-            subTags.forEach(sub => {
-                const btn = document.createElement("button");
-                btn.textContent = sub;
-                btn.onclick = () => filterPosts(mainTag, sub, postList);
-                subNav.appendChild(btn);
-            });
+            if (subTags.length === 0) {
+                subNav.style.display = "none"; // 没有子分类则隐藏
+            } else {
+                subTags.forEach(sub => {
+                    const btn = document.createElement("button");
+                    btn.textContent = sub;
+                    btn.onclick = () => filterPosts(mainTag, sub, postList);
+                    subNav.appendChild(btn);
+                });
+            }
 
             // **默认显示主分类下的所有文章**
             filterPosts(mainTag, "", postList);
