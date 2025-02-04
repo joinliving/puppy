@@ -9,15 +9,22 @@
         h1 { font-size: 24px; }
         .clock { position: absolute; top: 10px; left: 10px; font-size: 16px; }
         .counter { position: absolute; top: 10px; right: 10px; font-size: 16px; }
-        .post { border-bottom: 1px solid #ddd; padding: 10px; margin: 10px auto; width: 80%; max-width: 600px; }
+        .nav { margin: 20px 0; }
+        .nav button { padding: 5px 10px; margin: 5px; border: 1px solid #ddd; background: #f8f8f8; cursor: pointer; }
+        .post { border-bottom: 1px solid #ddd; padding: 10px; margin: 10px auto; width: 80%; max-width: 600px; text-align: left; }
         .post h2 { font-size: 18px; }
-        .post p { text-align: left; }
+        .post p { white-space: pre-line; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
     <div class="clock" id="clock">时间加载中...</div>
     <div class="counter">访问量：<span id="viewCount">加载中...</span></div>
     <h1>小狗创作中</h1>
+
+    <!-- **导航栏（按年份 & 类型筛选）** -->
+    <div class="nav" id="nav"></div>
+
     <h2>最新作品</h2>
     <div id="content">加载中...</div>
 
@@ -30,34 +37,63 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // **访问计数（使用 localStorage 模拟）**
+        // **访问计数**
         if (!localStorage.viewCount) localStorage.viewCount = 0;
         localStorage.viewCount = parseInt(localStorage.viewCount) + 1;
         document.getElementById('viewCount').textContent = localStorage.viewCount;
 
-        // **获取 GitHub Issues 作为作品**
+        // **获取 GitHub Issues（分类：年份 & 类型）**
         async function fetchIssues() {
-            const username = "joinliving";  // 替换成你的 GitHub 用户名
-            const repo = "puppy";  // 替换成你的仓库名
+            const username = "joinliving";  // GitHub 用户名
+            const repo = "puppy";  // 仓库名
             const url = `https://api.github.com/repos/${username}/${repo}/issues?state=open`;
 
             try {
                 const response = await fetch(url);
                 const issues = await response.json();
                 const contentDiv = document.getElementById("content");
+                const navDiv = document.getElementById("nav");
                 contentDiv.innerHTML = "";
+                navDiv.innerHTML = "";
+
+                let categories = new Set();
 
                 issues.forEach(issue => {
                     const post = document.createElement("div");
                     post.classList.add("post");
+                    post.dataset.tags = issue.labels.map(label => label.name).join(",");
+
                     post.innerHTML = `<h2>${issue.title}</h2><p>${issue.body.replace(/\n/g, "<br>")}</p>`;
                     contentDiv.appendChild(post);
+
+                    issue.labels.forEach(label => categories.add(label.name));
                 });
+
+                // **创建导航栏**
+                const allBtn = document.createElement("button");
+                allBtn.textContent = "全部";
+                allBtn.onclick = () => filterPosts("");
+                navDiv.appendChild(allBtn);
+
+                categories.forEach(cat => {
+                    const btn = document.createElement("button");
+                    btn.textContent = cat;
+                    btn.onclick = () => filterPosts(cat);
+                    navDiv.appendChild(btn);
+                });
+
             } catch (error) {
                 document.getElementById("content").textContent = "加载失败，请检查 GitHub 配置";
             }
         }
         fetchIssues();
+
+        // **按分类筛选**
+        function filterPosts(category) {
+            document.querySelectorAll(".post").forEach(post => {
+                post.style.display = category && !post.dataset.tags.includes(category) ? "none" : "block";
+            });
+        }
     </script>
 </body>
 </html>
