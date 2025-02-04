@@ -5,17 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>小狗创作中</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #fff; text-align: center; }
+        body { font-family: Arial, sans-serif; background: #fff; text-align: center; margin: 0; padding: 20px; }
         h1 { font-size: 24px; }
         .clock { position: absolute; top: 10px; left: 10px; font-size: 16px; }
         .counter { position: absolute; top: 10px; right: 10px; font-size: 16px; }
-        .post { border-bottom: 1px solid #ddd; padding: 10px; margin: 10px auto; width: 80%; max-width: 600px; text-align: left; }
+        .post { border-bottom: 1px solid #ddd; padding: 10px; margin: 10px auto; width: 90%; max-width: 600px; text-align: left; }
         .post h2 { font-size: 18px; margin: 0; }
         .post .content { display: none; white-space: pre-line; margin-top: 10px; }
         .post button { display: block; margin-top: 5px; }
         .footer { margin-top: 20px; font-size: 14px; color: gray; }
-        canvas { max-width: 90%; height: auto; margin-top: 10px; pointer-events: none; }
-        img { display: none; } /* 隐藏原始图片 */
     </style>
 </head>
 <body oncontextmenu="return false;" onselectstart="return false;" ondragstart="return false;"> <!-- 禁止右键、选择、拖拽 -->
@@ -25,11 +23,6 @@
 
     <h2>最新作品</h2>
     <div id="content">加载中...</div>
-
-    <!-- **图片上传区域** -->
-    <h2>上传图片（自动添加水印）</h2>
-    <input type="file" id="imageUpload" accept="image/*">
-    <canvas id="canvas"></canvas>
 
     <!-- **底部邮箱** -->
     <div class="footer">联系方式：oloiyy@163.com</div>
@@ -74,7 +67,7 @@
                     const toggleButton = document.createElement("button");
                     toggleButton.textContent = "展开正文";
                     toggleButton.onclick = function () {
-                        if (content.style.display === "none") {
+                        if (content.style.display === "none" || content.style.display === "") {
                             content.style.display = "block";
                             toggleButton.textContent = "收起正文";
                         } else {
@@ -94,32 +87,6 @@
             }
         }
         fetchIssues();
-
-        // **图片上传并添加水印**
-        document.getElementById("imageUpload").addEventListener("change", function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = new Image();
-                    img.src = e.target.result;
-                    img.onload = function() {
-                        const canvas = document.getElementById("canvas");
-                        const ctx = canvas.getContext("2d");
-
-                        canvas.width = img.width;
-                        canvas.height = img.height;
-
-                        ctx.drawImage(img, 0, 0);
-                        ctx.font = "30px Arial";
-                        ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
-                        ctx.fillText("山雀大王", 20, 50);
-                        ctx.fillText("oloiyy@163.com", 20, 90);
-                    };
-                };
-                reader.readAsDataURL(file);
-            }
-        });
     </script>
 </body>
 </html>
