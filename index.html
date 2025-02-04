@@ -57,30 +57,48 @@
                 navDiv.innerHTML = "";
 
                 let categories = new Set();
+                let years = new Set();
 
                 issues.forEach(issue => {
                     const post = document.createElement("div");
                     post.classList.add("post");
-                    post.dataset.tags = issue.labels.map(label => label.name).join(",");
+
+                    // 提取标签（类型）
+                    let tags = issue.labels.map(label => label.name);
+                    post.dataset.tags = tags.join(",");
+                    
+                    // 提取创建年份
+                    let year = new Date(issue.created_at).getFullYear();
+                    post.dataset.year = year;
+                    years.add(year);
 
                     post.innerHTML = `<h2>${issue.title}</h2><p>${issue.body.replace(/\n/g, "<br>")}</p>`;
                     contentDiv.appendChild(post);
 
-                    issue.labels.forEach(label => categories.add(label.name));
+                    tags.forEach(tag => categories.add(tag));
                 });
 
-                // **创建导航栏**
-                const allBtn = document.createElement("button");
-                allBtn.textContent = "全部";
-                allBtn.onclick = () => filterPosts("");
-                navDiv.appendChild(allBtn);
-
+                // **创建导航栏（按类型 & 年份）**
+                navDiv.innerHTML += "<strong>按类型筛选：</strong>";
                 categories.forEach(cat => {
                     const btn = document.createElement("button");
                     btn.textContent = cat;
-                    btn.onclick = () => filterPosts(cat);
+                    btn.onclick = () => filterPosts(cat, "");
                     navDiv.appendChild(btn);
                 });
+
+                navDiv.innerHTML += "<br><strong>按年份筛选：</strong>";
+                years.forEach(year => {
+                    const btn = document.createElement("button");
+                    btn.textContent = year;
+                    btn.onclick = () => filterPosts("", year);
+                    navDiv.appendChild(btn);
+                });
+
+                const allBtn = document.createElement("button");
+                allBtn.textContent = "全部";
+                allBtn.onclick = () => filterPosts("", "");
+                navDiv.appendChild(allBtn);
 
             } catch (error) {
                 document.getElementById("content").textContent = "加载失败，请检查 GitHub 配置";
@@ -89,9 +107,11 @@
         fetchIssues();
 
         // **按分类筛选**
-        function filterPosts(category) {
+        function filterPosts(category, year) {
             document.querySelectorAll(".post").forEach(post => {
-                post.style.display = category && !post.dataset.tags.includes(category) ? "none" : "block";
+                let matchCategory = category === "" || post.dataset.tags.includes(category);
+                let matchYear = year === "" || post.dataset.year == year;
+                post.style.display = matchCategory && matchYear ? "block" : "none";
             });
         }
     </script>
