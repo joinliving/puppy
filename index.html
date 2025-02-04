@@ -6,69 +6,78 @@
     <title>小狗创作中</title>
     <style>
         @font-face {
-            font-family: 'KingHwaOldSong';
-            src: url('KingHwaOldSong.ttf') format('truetype');
+            font-family: 'JinghuaSong';
+            src: url('https://your-font-url.com/JinghuaSong.woff2') format('woff2');
         }
+
         body {
-            font-family: 'KingHwaOldSong', Arial, sans-serif;
+            font-family: 'JinghuaSong', Arial, sans-serif;
             background: #fff;
             text-align: center;
             margin: 0;
             padding: 20px;
             position: relative;
         }
+
         h1 {
             font-size: 24px;
         }
+
         .clock {
             position: absolute;
             top: 10px;
             left: 10px;
             font-size: 16px;
         }
+
         .counter {
             position: absolute;
             top: 10px;
             right: 10px;
             font-size: 16px;
         }
-        .nav {
+
+        /* Pages 按钮 */
+        .pages-menu {
+            position: absolute;
+            top: 50px;
+            right: 10px;
+            font-size: 16px;
             background: #333;
-            padding: 10px;
-            margin-top: 50px;
-            display: flex;
-            justify-content: center;
-            position: relative;
-        }
-        .nav > div {
-            position: relative;
-            margin: 0 10px;
-        }
-        .nav a {
-            margin: 5px;
-            padding: 8px 12px;
-            text-decoration: none;
-            color: #fff;
-            background: #555;
+            color: white;
+            padding: 5px 10px;
             border-radius: 5px;
-            transition: 0.3s;
-            display: block;
+            cursor: pointer;
         }
-        .nav a:hover {
-            background: #777;
-        }
-        .sub-menu {
+
+        .dropdown {
             display: none;
             position: absolute;
-            top: 100%;
-            left: 0;
-            background: #444;
-            padding: 10px;
+            right: 10px;
+            top: 80px;
+            background: #222;
             border-radius: 5px;
+            width: 150px;
+            text-align: left;
+            z-index: 1000;
         }
-        .nav > div:hover .sub-menu {
+
+        .dropdown a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 8px;
+            border-bottom: 1px solid #444;
+        }
+
+        .dropdown a:hover {
+            background: #444;
+        }
+
+        .show {
             display: block;
         }
+
         .post {
             border-bottom: 1px solid #ddd;
             padding: 10px;
@@ -77,64 +86,52 @@
             max-width: 600px;
             text-align: left;
         }
+
         .post h2 {
             font-size: 18px;
             margin: 0;
         }
+
         .post .content {
             display: none;
             white-space: pre-line;
             margin-top: 10px;
         }
+
         .post button {
             display: block;
             margin-top: 5px;
         }
+
         .footer {
             margin-top: 20px;
             font-size: 14px;
             color: gray;
         }
-        img {
-            max-width: 100%;
-            height: auto;
-            display: block;
-            margin: 10px auto;
-        }
     </style>
 </head>
 <body oncontextmenu="return false;" onselectstart="return false;" ondragstart="return false;">
+
     <div class="clock" id="clock">时间加载中...</div>
     <div class="counter">访问量：<span id="viewCount">加载中...</span></div>
 
-    <!-- 分类导航 -->
-    <div class="nav">
-        <div>
-            <a href="#">小说</a>
-            <div class="sub-menu">
-                <a href="#">同人</a>
-                <a href="#">原创</a>
-                <a href="#">稿件</a>
-            </div>
-        </div>
-        <div>
-            <a href="#">画画</a>
-            <div class="sub-menu">
-                <a href="#">同人</a>
-                <a href="#">原创</a>
-                <a href="#">课程跟画</a>
-                <a href="#">自设</a>
-                <a href="#">稿件</a>
-                <a href="#">水印</a>
-            </div>
-        </div>
+    <div class="pages-menu" onclick="toggleMenu()">Pages</div>
+    <div class="dropdown" id="pagesDropdown">
+        <a href="#" onclick="filterContent('小说-同人')">小说-同人</a>
+        <a href="#" onclick="filterContent('小说-原创')">小说-原创</a>
+        <a href="#" onclick="filterContent('画画-同人')">画画-同人</a>
+        <a href="#" onclick="filterContent('画画-原创')">画画-原创</a>
+        <a href="#" onclick="filterContent('画画-课程跟画')">画画-课程跟画</a>
+        <a href="#" onclick="filterContent('画画-自设')">画画-自设</a>
+        <a href="#" onclick="filterContent('画画-稿件')">画画-稿件</a>
+        <a href="#" onclick="filterContent('小说-稿件')">小说-稿件</a>
+        <a href="#" onclick="filterContent('画画-水印')">画画-水印</a>
     </div>
 
     <h1>小狗创作中</h1>
-
     <h2>最新作品</h2>
     <div id="content">加载中...</div>
-
+    
     <div class="footer">联系方式：oloiyy@163.com</div>
 
     <script>
@@ -148,6 +145,10 @@
         if (!localStorage.viewCount) localStorage.viewCount = 0;
         localStorage.viewCount = parseInt(localStorage.viewCount) + 1;
         document.getElementById("viewCount").textContent = localStorage.viewCount;
+
+        function toggleMenu() {
+            document.getElementById("pagesDropdown").classList.toggle("show");
+        }
 
         async function fetchIssues() {
             const username = "joinliving";
@@ -163,6 +164,7 @@
                 issues.forEach(issue => {
                     const post = document.createElement("div");
                     post.classList.add("post");
+                    post.setAttribute("data-category", issue.labels.map(label => label.name).join(" "));
 
                     const title = document.createElement("h2");
                     title.textContent = issue.title;
@@ -170,7 +172,7 @@
                     const content = document.createElement("p");
                     content.classList.add("content");
                     let bodyHtml = issue.body.replace(/\n/g, "<br>");
-                    bodyHtml = bodyHtml.replace(/!\[.*?\]\((.*?)\)/g, '<img class="watermarked" src="$1">');
+                    bodyHtml = bodyHtml.replace(/!\[.*?\]\((.*?)\)/g, '<img src="$1">');
 
                     content.innerHTML = bodyHtml;
 
@@ -192,7 +194,22 @@
                     contentDiv.appendChild(post);
                 });
 
-                setTimeout(addWatermarkToImages, 1000);
-
             } catch (error) {
-                document.getElement 
+                document.getElementById("content").textContent = "加载失败，请检查 GitHub 配置";
+            }
+        }
+
+        function filterContent(category) {
+            document.querySelectorAll(".post").forEach(post => {
+                if (post.getAttribute("data-category").includes(category)) {
+                    post.style.display = "block";
+                } else {
+                    post.style.display = "none";
+                }
+            });
+        }
+
+        fetchIssues();
+    </script>
+</body>
+</html>
