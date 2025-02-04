@@ -7,18 +7,17 @@
     <style>
         body { font-family: Arial, sans-serif; background: #fff; text-align: center; }
         h1 { font-size: 24px; }
-        .clock, .counter { position: absolute; top: 10px; font-size: 16px; }
-        .clock { left: 10px; }
-        .counter { right: 10px; }
+        .clock { position: absolute; top: 10px; left: 10px; font-size: 16px; }
+        .counter { position: absolute; top: 10px; right: 10px; font-size: 16px; }
         .nav { margin: 20px 0; }
         .nav button { padding: 5px 10px; margin: 5px; border: 1px solid #ddd; background: #f8f8f8; cursor: pointer; }
-        .sub-nav { display: none; margin-top: 5px; }
+        .subcategory { display: none; margin-top: 5px; }
+        .subcategory button { background: #e0e0e0; }
         .post { border-bottom: 1px solid #ddd; padding: 10px; margin: 10px auto; width: 80%; max-width: 600px; text-align: left; }
         .post h2 { font-size: 18px; }
         .post p { white-space: pre-line; }
         .hidden { display: none; }
-        .footer { margin-top: 30px; font-size: 14px; color: #666; }
-        .upload-container { margin: 20px; }
+        .footer { margin-top: 20px; font-size: 14px; color: gray; }
     </style>
 </head>
 <body>
@@ -26,27 +25,27 @@
     <div class="counter">访问量：<span id="viewCount">加载中...</span></div>
     <h1>小狗创作中</h1>
 
-    <!-- **导航栏（分类 & 过滤）** -->
+    <!-- **导航栏（大分类 & 小分类）** -->
     <div class="nav" id="nav"></div>
 
     <h2>最新作品</h2>
     <div id="content">加载中...</div>
 
-    <!-- **图片上传功能** -->
-    <div class="upload-container">
-        <input type="file" id="imageUpload" accept="image/*">
-        <button onclick="addWatermark()">上传并添加水印</button>
-        <canvas id="canvas" style="display:none;"></canvas>
-        <div id="imagePreview"></div>
-    </div>
+    <!-- **图片上传区域** -->
+    <h2>上传图片（自动添加水印）</h2>
+    <input type="file" id="imageUpload" accept="image/*">
+    <canvas id="canvas" style="display:none;"></canvas>
+    <br>
+    <button onclick="downloadImage()">下载带水印的图片</button>
 
-    <!-- **网站底部邮箱** -->
-    <div class="footer">联系邮箱：<a href="mailto:oloiyy@163.com">oloiyy@163.com</a></div>
+    <!-- **底部邮箱** -->
+    <div class="footer">联系方式：oloiyy@163.com</div>
 
     <script>
         // **时钟**
         function updateClock() {
-            document.getElementById('clock').textContent = new Date().toLocaleTimeString();
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleTimeString();
         }
         setInterval(updateClock, 1000);
         updateClock();
@@ -56,43 +55,56 @@
         localStorage.viewCount = parseInt(localStorage.viewCount) + 1;
         document.getElementById('viewCount').textContent = localStorage.viewCount;
 
-        // **分类数据**
+        // **大分类和小分类数据**
         const categories = {
             "小说-同人": ["成小玉"],
-            "小说-原创": ["原创故事1", "原创故事2"],
-            "画画-同人": ["角色A", "角色B"],
-            "画画-原创": ["原创插画1", "原创插画2"],
-            "画画-课程跟画": []
+            "小说-原创": [],
+            "小说-稿件": [],
+            "画画-同人": [],
+            "画画-原创": [],
+            "画画-自设": [],
+            "画画-稿件": [],
+            "画画-课程跟画": [],
+            "画画-水印": []
         };
 
-        // **生成导航栏**
-        const navDiv = document.getElementById("nav");
-        Object.keys(categories).forEach(category => {
-            const btn = document.createElement("button");
-            btn.textContent = category;
-            btn.onclick = () => toggleSubNav(category);
-            navDiv.appendChild(btn);
+        // **加载导航栏**
+        function loadNavigation() {
+            const navDiv = document.getElementById("nav");
+            navDiv.innerHTML = "";
 
-            const subNav = document.createElement("div");
-            subNav.classList.add("sub-nav");
-            subNav.id = `sub-${category}`;
-            categories[category].forEach(sub => {
-                const subBtn = document.createElement("button");
-                subBtn.textContent = sub;
-                subBtn.onclick = () => filterPosts(sub);
-                subNav.appendChild(subBtn);
-            });
-            navDiv.appendChild(subNav);
-        });
+            for (const [mainCategory, subCategories] of Object.entries(categories)) {
+                const mainBtn = document.createElement("button");
+                mainBtn.textContent = mainCategory;
+                mainBtn.onclick = () => toggleSubcategories(mainCategory);
+                navDiv.appendChild(mainBtn);
 
-        // **展开/折叠小分类**
-        function toggleSubNav(category) {
-            document.querySelectorAll(".sub-nav").forEach(el => el.style.display = "none");
-            const subNav = document.getElementById(`sub-${category}`);
-            if (subNav) subNav.style.display = "block";
+                if (subCategories.length > 0) {
+                    const subDiv = document.createElement("div");
+                    subDiv.classList.add("subcategory");
+                    subDiv.id = `sub-${mainCategory}`;
+
+                    subCategories.forEach(sub => {
+                        const subBtn = document.createElement("button");
+                        subBtn.textContent = sub;
+                        subBtn.onclick = () => filterPosts(sub);
+                        subDiv.appendChild(subBtn);
+                    });
+
+                    navDiv.appendChild(subDiv);
+                }
+            }
         }
 
-        // **加载 GitHub Issues**
+        // **切换小分类**
+        function toggleSubcategories(category) {
+            document.querySelectorAll(".subcategory").forEach(sub => sub.style.display = "none");
+            const targetSub = document.getElementById(`sub-${category}`);
+            if (targetSub) targetSub.style.display = "block";
+            filterPosts(category);
+        }
+
+        // **获取 GitHub Issues（按标签筛选）**
         async function fetchIssues() {
             const username = "joinliving";
             const repo = "puppy";
@@ -122,45 +134,49 @@
         // **按分类筛选**
         function filterPosts(category) {
             document.querySelectorAll(".post").forEach(post => {
-                post.style.display = post.dataset.tags.includes(category) ? "block" : "none";
+                post.style.display = category && !post.dataset.tags.includes(category) ? "none" : "block";
             });
         }
 
-        // **图片上传 & 添加水印**
-        function addWatermark() {
-            const fileInput = document.getElementById("imageUpload");
-            const canvas = document.getElementById("canvas");
-            const ctx = canvas.getContext("2d");
-            const previewDiv = document.getElementById("imagePreview");
+        // **图片上传并添加水印**
+        document.getElementById("imageUpload").addEventListener("change", function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = function() {
+                        const canvas = document.getElementById("canvas");
+                        const ctx = canvas.getContext("2d");
 
-            if (fileInput.files.length === 0) {
-                alert("请先选择一张图片");
-                return;
-            }
+                        canvas.width = img.width;
+                        canvas.height = img.height;
 
-            const file = fileInput.files[0];
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const img = new Image();
-                img.onload = function() {
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    ctx.drawImage(img, 0, 0);
+                        ctx.drawImage(img, 0, 0);
+                        ctx.font = "30px Arial";
+                        ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
+                        ctx.fillText("山雀大王", 20, 50);
+                        ctx.fillText("oloiyy@163.com", 20, 90);
 
-                    // **添加水印**
-                    ctx.font = "30px Arial";
-                    ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-                    ctx.fillText("山雀大王", img.width - 200, img.height - 50);
-                    ctx.fillText("oloiyy@163.com", img.width - 300, img.height - 20);
-
-                    // **展示水印后的图片**
-                    const dataURL = canvas.toDataURL();
-                    previewDiv.innerHTML = `<img src="${dataURL}" style="max-width:100%;">`;
+                        canvas.style.display = "block";
+                    };
                 };
-                img.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // **下载带水印的图片**
+        function downloadImage() {
+            const canvas = document.getElementById("canvas");
+            const link = document.createElement("a");
+            link.download = "watermarked_image.png";
+            link.href = canvas.toDataURL();
+            link.click();
         }
+
+        // **初始化**
+        loadNavigation();
     </script>
 </body>
 </html>
