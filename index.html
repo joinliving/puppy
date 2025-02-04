@@ -9,24 +9,19 @@
         h1 { font-size: 24px; }
         .clock { position: absolute; top: 10px; left: 10px; font-size: 16px; }
         .counter { position: absolute; top: 10px; right: 10px; font-size: 16px; }
-        .nav { margin: 20px 0; }
-        .nav button { padding: 5px 10px; margin: 5px; border: 1px solid #ddd; background: #f8f8f8; cursor: pointer; }
-        .subcategory { display: none; margin-top: 5px; }
-        .subcategory button { background: #e0e0e0; }
         .post { border-bottom: 1px solid #ddd; padding: 10px; margin: 10px auto; width: 80%; max-width: 600px; text-align: left; }
         .post h2 { font-size: 18px; margin: 0; }
-        .post p { white-space: pre-line; display: none; }
-        .hidden { display: none; }
+        .post .content { display: none; white-space: pre-line; margin-top: 10px; }
+        .post button { display: block; margin-top: 5px; }
         .footer { margin-top: 20px; font-size: 14px; color: gray; }
+        canvas { max-width: 90%; height: auto; margin-top: 10px; pointer-events: none; }
+        img { display: none; } /* 隐藏原始图片 */
     </style>
 </head>
-<body>
+<body oncontextmenu="return false;" onselectstart="return false;" ondragstart="return false;"> <!-- 禁止右键、选择、拖拽 -->
     <div class="clock" id="clock">时间加载中...</div>
     <div class="counter">访问量：<span id="viewCount">加载中...</span></div>
     <h1>小狗创作中</h1>
-
-    <!-- **导航栏（大分类 & 小分类）** -->
-    <div class="nav" id="nav"></div>
 
     <h2>最新作品</h2>
     <div id="content">加载中...</div>
@@ -34,9 +29,7 @@
     <!-- **图片上传区域** -->
     <h2>上传图片（自动添加水印）</h2>
     <input type="file" id="imageUpload" accept="image/*">
-    <canvas id="canvas" style="display:none;"></canvas>
-    <br>
-    <button onclick="downloadImage()">下载带水印的图片</button>
+    <canvas id="canvas"></canvas>
 
     <!-- **底部邮箱** -->
     <div class="footer">联系方式：oloiyy@163.com</div>
@@ -55,56 +48,7 @@
         localStorage.viewCount = parseInt(localStorage.viewCount) + 1;
         document.getElementById("viewCount").textContent = localStorage.viewCount;
 
-        // **大分类和小分类数据**
-        const categories = {
-            "小说-同人": ["成小玉"],
-            "小说-原创": [],
-            "小说-稿件": [],
-            "画画-同人": [],
-            "画画-原创": [],
-            "画画-自设": [],
-            "画画-稿件": [],
-            "画画-课程跟画": [],
-            "画画-水印": []
-        };
-
-        // **加载导航栏**
-        function loadNavigation() {
-            const navDiv = document.getElementById("nav");
-            navDiv.innerHTML = "";
-
-            for (const [mainCategory, subCategories] of Object.entries(categories)) {
-                const mainBtn = document.createElement("button");
-                mainBtn.textContent = mainCategory;
-                mainBtn.onclick = () => toggleSubcategories(mainCategory);
-                navDiv.appendChild(mainBtn);
-
-                if (subCategories.length > 0) {
-                    const subDiv = document.createElement("div");
-                    subDiv.classList.add("subcategory");
-                    subDiv.id = `sub-${mainCategory}`;
-
-                    subCategories.forEach(sub => {
-                        const subBtn = document.createElement("button");
-                        subBtn.textContent = sub;
-                        subBtn.onclick = () => filterPosts(sub);
-                        subDiv.appendChild(subBtn);
-                    });
-
-                    navDiv.appendChild(subDiv);
-                }
-            }
-        }
-
-        // **切换小分类**
-        function toggleSubcategories(category) {
-            document.querySelectorAll(".subcategory").forEach(sub => sub.style.display = "none");
-            const targetSub = document.getElementById(`sub-${category}`);
-            if (targetSub) targetSub.style.display = "block";
-            filterPosts(category);
-        }
-
-        // **获取 GitHub Issues（按标签筛选）**
+        // **获取 GitHub Issues**
         async function fetchIssues() {
             const username = "joinliving";
             const repo = "puppy";
@@ -119,15 +63,29 @@
                 issues.forEach(issue => {
                     const post = document.createElement("div");
                     post.classList.add("post");
-                    post.dataset.tags = issue.labels.map(label => label.name).join(",");
 
-                    const bodyId = `body-${issue.id}`;
-                    post.innerHTML = `
-                        <h2>${issue.title}</h2>
-                        <p id="${bodyId}" class="hidden">${issue.body.replace(/\n/g, "<br>")}</p>
-                        <button onclick="toggleBody('${bodyId}')">展开正文</button>
-                    `;
+                    const title = document.createElement("h2");
+                    title.textContent = issue.title;
 
+                    const content = document.createElement("p");
+                    content.classList.add("content");
+                    content.innerHTML = issue.body.replace(/\n/g, "<br>");
+
+                    const toggleButton = document.createElement("button");
+                    toggleButton.textContent = "展开正文";
+                    toggleButton.onclick = function () {
+                        if (content.style.display === "none") {
+                            content.style.display = "block";
+                            toggleButton.textContent = "收起正文";
+                        } else {
+                            content.style.display = "none";
+                            toggleButton.textContent = "展开正文";
+                        }
+                    };
+
+                    post.appendChild(title);
+                    post.appendChild(toggleButton);
+                    post.appendChild(content);
                     contentDiv.appendChild(post);
                 });
 
@@ -135,20 +93,7 @@
                 document.getElementById("content").textContent = "加载失败，请检查 GitHub 配置";
             }
         }
-
-        // **展开/折叠正文**
-        function toggleBody(bodyId) {
-            const bodyElement = document.getElementById(bodyId);
-            const button = bodyElement.nextElementSibling;
-
-            if (bodyElement.classList.contains("hidden")) {
-                bodyElement.classList.remove("hidden");
-                button.textContent = "收起正文";
-            } else {
-                bodyElement.classList.add("hidden");
-                button.textContent = "展开正文";
-            }
-        }
+        fetchIssues();
 
         // **图片上传并添加水印**
         document.getElementById("imageUpload").addEventListener("change", function(event) {
@@ -158,7 +103,6 @@
                 reader.onload = function(e) {
                     const img = new Image();
                     img.src = e.target.result;
-
                     img.onload = function() {
                         const canvas = document.getElementById("canvas");
                         const ctx = canvas.getContext("2d");
@@ -171,26 +115,11 @@
                         ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
                         ctx.fillText("山雀大王", 20, 50);
                         ctx.fillText("oloiyy@163.com", 20, 90);
-
-                        canvas.style.display = "block";
                     };
                 };
                 reader.readAsDataURL(file);
             }
         });
-
-        // **下载带水印的图片**
-        function downloadImage() {
-            const canvas = document.getElementById("canvas");
-            const link = document.createElement("a");
-            link.download = "watermarked_image.png";
-            link.href = canvas.toDataURL();
-            link.click();
-        }
-
-        // **初始化**
-        loadNavigation();
-        fetchIssues();
     </script>
 </body>
 </html>
