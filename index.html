@@ -14,8 +14,8 @@
         .subcategory { display: none; margin-top: 5px; }
         .subcategory button { background: #e0e0e0; }
         .post { border-bottom: 1px solid #ddd; padding: 10px; margin: 10px auto; width: 80%; max-width: 600px; text-align: left; }
-        .post h2 { font-size: 18px; }
-        .post p { white-space: pre-line; }
+        .post h2 { font-size: 18px; margin: 0; }
+        .post p { white-space: pre-line; display: none; }
         .hidden { display: none; }
         .footer { margin-top: 20px; font-size: 14px; color: gray; }
     </style>
@@ -53,7 +53,7 @@
         // **访问计数**
         if (!localStorage.viewCount) localStorage.viewCount = 0;
         localStorage.viewCount = parseInt(localStorage.viewCount) + 1;
-        document.getElementById('viewCount').textContent = localStorage.viewCount;
+        document.getElementById("viewCount").textContent = localStorage.viewCount;
 
         // **大分类和小分类数据**
         const categories = {
@@ -121,7 +121,13 @@
                     post.classList.add("post");
                     post.dataset.tags = issue.labels.map(label => label.name).join(",");
 
-                    post.innerHTML = `<h2>${issue.title}</h2><p>${issue.body.replace(/\n/g, "<br>")}</p>`;
+                    const bodyId = `body-${issue.id}`;
+                    post.innerHTML = `
+                        <h2>${issue.title}</h2>
+                        <p id="${bodyId}" class="hidden">${issue.body.replace(/\n/g, "<br>")}</p>
+                        <button onclick="toggleBody('${bodyId}')">展开正文</button>
+                    `;
+
                     contentDiv.appendChild(post);
                 });
 
@@ -129,13 +135,19 @@
                 document.getElementById("content").textContent = "加载失败，请检查 GitHub 配置";
             }
         }
-        fetchIssues();
 
-        // **按分类筛选**
-        function filterPosts(category) {
-            document.querySelectorAll(".post").forEach(post => {
-                post.style.display = category && !post.dataset.tags.includes(category) ? "none" : "block";
-            });
+        // **展开/折叠正文**
+        function toggleBody(bodyId) {
+            const bodyElement = document.getElementById(bodyId);
+            const button = bodyElement.nextElementSibling;
+
+            if (bodyElement.classList.contains("hidden")) {
+                bodyElement.classList.remove("hidden");
+                button.textContent = "收起正文";
+            } else {
+                bodyElement.classList.add("hidden");
+                button.textContent = "展开正文";
+            }
         }
 
         // **图片上传并添加水印**
@@ -145,7 +157,8 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const img = new Image();
-                    <img src="https://github.com/user-attachments/assets/20f98c2c-a3b1-4679-9b80-78a0deb10627" alt="图片描述" width="300">
+                    img.src = e.target.result;
+
                     img.onload = function() {
                         const canvas = document.getElementById("canvas");
                         const ctx = canvas.getContext("2d");
@@ -177,6 +190,7 @@
 
         // **初始化**
         loadNavigation();
+        fetchIssues();
     </script>
 </body>
 </html>
