@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>作品存档</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: white; text-align: center; }
+        #clock { position: absolute; left: 10px; top: 10px; font-size: 18px; font-weight: bold; }
+        #counter { position: absolute; right: 10px; top: 10px; font-size: 16px; }
+        #gallery { margin-top: 50px; }
+        .image-container { position: relative; display: inline-block; margin: 10px; }
+        .image-container img { max-width: 200px; height: auto; }
+        .watermark { position: absolute; bottom: 5px; right: 5px; background: rgba(0, 0, 0, 0.5); color: white; padding: 3px; font-size: 12px; }
+        #updates { position: fixed; bottom: 10px; right: 10px; width: 200px; height: 300px; overflow-y: auto; background: rgba(0,0,0,0.05); padding: 10px; }
+    </style>
+</head>
+<body>
+
+    <div id="clock"></div>
+    <div id="counter">访问量: <span id="views">0</span></div>
+
+    <h1>我的画作 & 小说存档</h1>
+    <p>按年份分类</p>
+
+    <div id="gallery">
+        <div class="image-container">
+            <img src="artwork1.jpg" alt="画作1">
+            <div class="watermark">版权所有</div>
+        </div>
+        <div class="image-container">
+            <img src="artwork2.jpg" alt="画作2">
+            <div class="watermark">版权所有</div>
+        </div>
+    </div>
+
+    <div id="updates">
+        <h3>动态更新</h3>
+        <div id="update-list">
+            <p>最新作品已发布！</p>
+        </div>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString();
+        }
+        setInterval(updateClock, 1000);
+
+        // 访问统计（本地存储模拟）
+        if (localStorage.pageViews) {
+            localStorage.pageViews = Number(localStorage.pageViews) + 1;
+        } else {
+            localStorage.pageViews = 1;
+        }
+        document.getElementById('views').innerText = localStorage.pageViews;
+    </script>
+
+</body>
+</html>
