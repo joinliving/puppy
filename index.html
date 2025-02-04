@@ -11,10 +11,10 @@
         .counter { position: absolute; top: 10px; right: 10px; font-size: 16px; }
         .nav { margin: 20px 0; }
         .nav button { padding: 5px 10px; margin: 5px; border: 1px solid #ddd; background: #f8f8f8; cursor: pointer; }
+        .sub-nav { display: none; margin: 10px; }
         .post { border-bottom: 1px solid #ddd; padding: 10px; margin: 10px auto; width: 80%; max-width: 600px; text-align: left; }
         .post h2 { font-size: 18px; }
         .post p { white-space: pre-line; }
-        .hidden { display: none; }
     </style>
 </head>
 <body>
@@ -22,8 +22,10 @@
     <div class="counter">访问量：<span id="viewCount">加载中...</span></div>
     <h1>小狗创作中</h1>
 
-    <!-- **导航栏（按年份 & 类型筛选）** -->
-    <div class="nav" id="nav"></div>
+    <!-- **主分类导航栏（五个大类别）** -->
+    <div class="nav" id="mainNav"></div>
+    <!-- **子分类导航栏（小标签）** -->
+    <div class="nav sub-nav" id="subNav"></div>
 
     <h2>最新作品</h2>
     <div id="content">加载中...</div>
@@ -42,7 +44,10 @@
         localStorage.viewCount = parseInt(localStorage.viewCount) + 1;
         document.getElementById('viewCount').textContent = localStorage.viewCount;
 
-        // **获取 GitHub Issues（分类：年份 & 类型）**
+        // **五个主分类**
+        const mainCategories = ["小说-同人", "小说-原创", "画画-同人", "画画-原创", "画画-课程跟画"];
+
+        // **获取 GitHub Issues**
         async function fetchIssues() {
             const username = "joinliving";  // GitHub 用户名
             const repo = "puppy";  // 仓库名
@@ -52,38 +57,46 @@
                 const response = await fetch(url);
                 const issues = await response.json();
                 const contentDiv = document.getElementById("content");
-                const navDiv = document.getElementById("nav");
+                const mainNav = document.getElementById("mainNav");
+                const subNav = document.getElementById("subNav");
                 contentDiv.innerHTML = "";
-                navDiv.innerHTML = "";
+                mainNav.innerHTML = "";
+                subNav.innerHTML = "";
 
-                let categories = new Set();
+                let categoryMap = {}; // 大类-小类对应关系
+                let postList = [];
 
+                // **初始化主分类**
+                mainCategories.forEach(cat => categoryMap[cat] = new Set());
+
+                // **解析 Issue 并分类**
                 issues.forEach(issue => {
-                    // **解析正文中的手动标签（#标签）**
                     let tags = issue.body.match(/#\S+/g) || [];
                     tags = tags.map(tag => tag.replace("#", "")); // 去掉 `#`
 
-                    const post = document.createElement("div");
-                    post.classList.add("post");
-                    post.dataset.tags = tags.join(",");
+                    let mainTag = tags.find(tag => mainCategories.includes(tag)); // 找大分类
+                    let subTags = tags.filter(tag => !mainCategories.includes(tag)); // 剩下的就是小标签
 
-                    post.innerHTML = `<h2>${issue.title}</h2><p>${issue.body.replace(/\n/g, "<br>")}</p>`;
-                    contentDiv.appendChild(post);
+                    // **存入对应分类**
+                    if (mainTag) {
+                        subTags.forEach(sub => categoryMap[mainTag].add(sub));
 
-                    tags.forEach(tag => categories.add(tag));
+                        const post = document.createElement("div");
+                        post.classList.add("post");
+                        post.dataset.mainTag = mainTag;
+                        post.dataset.subTags = subTags.join(",");
+                        post.innerHTML = `<h2>${issue.title}</h2><p>${issue.body.replace(/\n/g, "<br>")}</p>`;
+                        contentDiv.appendChild(post);
+                        postList.push(post);
+                    }
                 });
 
-                // **创建导航栏**
-                const allBtn = document.createElement("button");
-                allBtn.textContent = "全部";
-                allBtn.onclick = () => filterPosts("");
-                navDiv.appendChild(allBtn);
-
-                categories.forEach(cat => {
+                // **创建主分类导航**
+                mainCategories.forEach(cat => {
                     const btn = document.createElement("button");
                     btn.textContent = cat;
-                    btn.onclick = () => filterPosts(cat);
-                    navDiv.appendChild(btn);
+                    btn.onclick = () => showSubCategories(cat, postList);
+                    mainNav.appendChild(btn);
                 });
 
             } catch (error) {
@@ -92,10 +105,31 @@
         }
         fetchIssues();
 
-        // **按分类筛选**
-        function filterPosts(category) {
-            document.querySelectorAll(".post").forEach(post => {
-                post.style.display = category && !post.dataset.tags.includes(category) ? "none" : "block";
+        // **显示小分类**
+        function showSubCategories(mainTag, postList) {
+            const subNav = document.getElementById("subNav");
+            subNav.innerHTML = ""; // 清空子分类
+            subNav.style.display = "block"; // 显示子分类栏
+
+            // **找到主分类对应的小标签**
+            const subTags = [...categoryMap[mainTag]];
+            subTags.forEach(sub => {
+                const btn = document.createElement("button");
+                btn.textContent = sub;
+                btn.onclick = () => filterPosts(mainTag, sub, postList);
+                subNav.appendChild(btn);
+            });
+
+            // **默认显示主分类下的所有文章**
+            filterPosts(mainTag, "", postList);
+        }
+
+        // **筛选文章**
+        function filterPosts(mainTag, subTag, postList) {
+            postList.forEach(post => {
+                const matchesMain = post.dataset.mainTag === mainTag;
+                const matchesSub = subTag === "" || post.dataset.subTags.includes(subTag);
+                post.style.display = matchesMain && matchesSub ? "block" : "none";
             });
         }
     </script>
