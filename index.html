@@ -3,59 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>作品存档</title>
+    <title>小狗创作中</title>
     <style>
-        body { font-family: Arial, sans-serif; background: white; text-align: center; }
-        #clock { position: absolute; left: 10px; top: 10px; font-size: 18px; font-weight: bold; }
-        #counter { position: absolute; right: 10px; top: 10px; font-size: 16px; }
-        #gallery { margin-top: 50px; }
-        .image-container { position: relative; display: inline-block; margin: 10px; }
-        .image-container img { max-width: 200px; height: auto; }
-        .watermark { position: absolute; bottom: 5px; right: 5px; background: rgba(0, 0, 0, 0.5); color: white; padding: 3px; font-size: 12px; }
-        #updates { position: fixed; bottom: 10px; right: 10px; width: 200px; height: 300px; overflow-y: auto; background: rgba(0,0,0,0.05); padding: 10px; }
+        body { font-family: Arial, sans-serif; background: #fff; text-align: center; }
+        h1 { font-size: 24px; }
+        .clock { position: absolute; top: 10px; left: 10px; font-size: 16px; }
+        .counter { position: absolute; top: 10px; right: 10px; font-size: 16px; }
+        .post { border-bottom: 1px solid #ddd; padding: 10px; margin: 10px auto; width: 80%; max-width: 600px; }
+        .post h2 { font-size: 18px; }
+        .post p { text-align: left; }
     </style>
 </head>
 <body>
-
-    <div id="clock"></div>
-    <div id="counter">访问量: <span id="views">0</span></div>
-
-    <h1>我的画作 & 小说存档</h1>
-    <p>按年份分类</p>
-
-    <div id="gallery">
-        <div class="image-container">
-            <img src="artwork1.jpg" alt="画作1">
-            <div class="watermark">版权所有</div>
-        </div>
-        <div class="image-container">
-            <img src="artwork2.jpg" alt="画作2">
-            <div class="watermark">版权所有</div>
-        </div>
-    </div>
-
-    <div id="updates">
-        <h3>动态更新</h3>
-        <div id="update-list">
-            <p>最新作品已发布！</p>
-        </div>
-    </div>
+    <div class="clock" id="clock">时间加载中...</div>
+    <div class="counter">访问量：<span id="viewCount">加载中...</span></div>
+    <h1>小狗创作中</h1>
+    <h2>最新作品</h2>
+    <div id="content">加载中...</div>
 
     <script>
+        // **时钟**
         function updateClock() {
             const now = new Date();
-            document.getElementById('clock').innerText = now.toLocaleTimeString();
+            document.getElementById('clock').textContent = now.toLocaleTimeString();
         }
         setInterval(updateClock, 1000);
+        updateClock();
 
-        // 访问统计（本地存储模拟）
-        if (localStorage.pageViews) {
-            localStorage.pageViews = Number(localStorage.pageViews) + 1;
-        } else {
-            localStorage.pageViews = 1;
+        // **访问计数（使用 localStorage 模拟）**
+        if (!localStorage.viewCount) localStorage.viewCount = 0;
+        localStorage.viewCount = parseInt(localStorage.viewCount) + 1;
+        document.getElementById('viewCount').textContent = localStorage.viewCount;
+
+        // **获取 GitHub Issues 作为作品**
+        async function fetchIssues() {
+            const username = "joinliving";  // 替换成你的 GitHub 用户名
+            const repo = "puppy";  // 替换成你的仓库名
+            const url = `https://api.github.com/repos/${username}/${repo}/issues?state=open`;
+
+            try {
+                const response = await fetch(url);
+                const issues = await response.json();
+                const contentDiv = document.getElementById("content");
+                contentDiv.innerHTML = "";
+
+                issues.forEach(issue => {
+                    const post = document.createElement("div");
+                    post.classList.add("post");
+                    post.innerHTML = `<h2>${issue.title}</h2><p>${issue.body.replace(/\n/g, "<br>")}</p>`;
+                    contentDiv.appendChild(post);
+                });
+            } catch (error) {
+                document.getElementById("content").textContent = "加载失败，请检查 GitHub 配置";
+            }
         }
-        document.getElementById('views').innerText = localStorage.pageViews;
+        fetchIssues();
     </script>
-
 </body>
 </html>
