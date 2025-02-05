@@ -4,134 +4,119 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>小狗创作中</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC&display=swap">
     <style>
         body {
-            font-family: 'Noto Serif SC', '京华老宋体', serif;
+            font-family: "京华老宋体", sans-serif;
+            background-color: #ffffff;
             text-align: center;
-            background-color: #f8f8f8;
-            margin: 0;
-            padding: 0;
         }
-        #header {
-            font-size: 24px;
-            font-weight: bold;
-            margin-top: 20px;
-        }
-        #menu {
-            position: fixed;
-            top: 60px; /* 让菜单下移，避免与访问量重叠 */
-            right: 10px;
-            background: black;
+        .menu {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: black;
             color: white;
             padding: 10px;
             border-radius: 5px;
             cursor: pointer;
         }
-        #dropdown {
+        .dropdown {
             display: none;
             position: absolute;
-            top: 100%;
-            right: 0;
-            background: black;
+            top: 50px;
+            right: 20px;
+            background-color: black;
             color: white;
-            padding: 5px;
-            list-style: none;
-            width: 150px;
-        }
-        #dropdown li {
-            padding: 5px;
-            cursor: pointer;
-        }
-        #dropdown li:hover {
-            background: #444;
-        }
-        .post {
-            background: white;
-            margin: 10px auto;
             padding: 10px;
             border-radius: 5px;
-            width: 80%;
-            max-width: 600px;
+        }
+        .dropdown button {
+            display: block;
+            width: 100%;
+            background: none;
+            border: none;
+            color: white;
+            padding: 5px;
+            cursor: pointer;
+            text-align: left;
+        }
+        .content {
+            margin-top: 80px;
+        }
+        .work {
+            display: none;
+            background: #f0f0f0;
+            margin: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .work.active {
+            display: block;
         }
     </style>
 </head>
 <body>
 
-    <div id="header">小狗创作中</div>
-    <p>最新作品</p>
+<h1>小狗创作中</h1>
+<div class="menu" onclick="toggleMenu()">Pages</div>
+<div class="dropdown" id="menu">
+    <button onclick="filterCategory('全部')">全部</button>
+    <button onclick="filterCategory('小说-同人')">小说-同人</button>
+    <button onclick="filterCategory('小说-原创')">小说-原创</button>
+    <button onclick="filterCategory('画画-同人')">画画-同人</button>
+    <button onclick="filterCategory('画画-原创')">画画-原创</button>
+    <button onclick="filterCategory('画画-课程跟画')">画画-课程跟画</button>
+    <button onclick="filterCategory('画画-自设')">画画-自设</button>
+    <button onclick="filterCategory('画画-稿件')">画画-稿件</button>
+    <button onclick="filterCategory('小说-稿件')">小说-稿件</button>
+    <button onclick="filterCategory('画画-水印')">画画-水印</button>
+</div>
 
-    <div id="menu">
-        Pages ▼
-        <ul id="dropdown">
-            <li onclick="filterContent('小说-同人')">小说-同人</li>
-            <li onclick="filterContent('小说-原创')">小说-原创</li>
-            <li onclick="filterContent('画画-同人')">画画-同人</li>
-            <li onclick="filterContent('画画-原创')">画画-原创</li>
-            <li onclick="filterContent('画画-课程跟画')">画画-课程跟画</li>
-            <li onclick="filterContent('画画-自设')">画画-自设</li>
-            <li onclick="filterContent('画画-稿件')">画画-稿件</li>
-            <li onclick="filterContent('小说-稿件')">小说-稿件</li>
-            <li onclick="filterContent('画画-水印')">画画-水印</li>
-        </ul>
-    </div>
+<div class="content">
+    <div class="work" data-category="小说-同人">小玉3 <button onclick="toggleText(this)">展开正文</button></div>
+    <div class="work" data-category="小说-原创">苏苏1 <button onclick="toggleText(this)">展开正文</button></div>
+    <div class="work" data-category="小说-原创">小玉2 <button onclick="toggleText(this)">展开正文</button></div>
+    <div class="work" data-category="小说-同人">有谁想拯救世界吗？（成小玉） <button onclick="toggleText(this)">展开正文</button></div>
+    <div class="work" data-category="画画-原创">原创插画1 <button onclick="toggleText(this)">展开正文</button></div>
+    <div class="work" data-category="画画-自设">角色设定 <button onclick="toggleText(this)">展开正文</button></div>
+</div>
 
-    <div id="content">
-        <div class="post" data-category="小说-同人">
-            <h3>苏苏1</h3>
-            <button onclick="toggleContent(this)">展开正文</button>
-            <p style="display: none;">这里是苏苏1的正文内容。</p>
-        </div>
-        <div class="post" data-category="小说-同人">
-            <h3>小玉3</h3>
-            <button onclick="toggleContent(this)">展开正文</button>
-            <p style="display: none;">这里是小玉3的正文内容。</p>
-        </div>
-        <div class="post" data-category="小说-原创">
-            <h3>小玉2</h3>
-            <button onclick="toggleContent(this)">展开正文</button>
-            <p style="display: none;">这里是小玉2的正文内容。</p>
-        </div>
-        <div class="post" data-category="小说-同人">
-            <h3>有谁想拯救世界吗？（成小玉）</h3>
-            <button onclick="toggleContent(this)">展开正文</button>
-            <p style="display: none;">这里是成小玉的正文内容。</p>
-        </div>
-    </div>
+<script>
+function toggleMenu() {
+    var menu = document.getElementById("menu");
+    menu.style.display = menu.style.display === "block" ? "none" : "block";
+}
 
-    <p>联系方式：oloiyy@163.com</p>
+function filterCategory(category) {
+    var works = document.querySelectorAll(".work");
 
-    <script>
-        document.getElementById("menu").addEventListener("click", function () {
-            let dropdown = document.getElementById("dropdown");
-            dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
-        });
-
-        function toggleContent(button) {
-            let content = button.nextElementSibling;
-            content.style.display = content.style.display === "none" ? "block" : "none";
-        }
-
-        function filterContent(category) {
-            let posts = document.querySelectorAll(".post");
-            let hasMatch = false;
-            
-            posts.forEach(post => {
-                let categories = post.getAttribute("data-category");
-                if (categories && categories.includes(category)) {
-                    post.style.display = "block";
-                    hasMatch = true;
-                } else {
-                    post.style.display = "none";
-                }
-            });
-
-            let contentDiv = document.getElementById("content");
-            if (!hasMatch) {
-                contentDiv.innerHTML = `<p>该分类暂无内容。</p>`;
+    if (category === "全部") {
+        works.forEach(work => work.classList.add("active"));
+    } else {
+        works.forEach(work => {
+            if (work.getAttribute("data-category") === category) {
+                work.classList.add("active");
+            } else {
+                work.classList.remove("active");
             }
-        }
-    </script>
+        });
+    }
+}
+
+function toggleText(button) {
+    var work = button.parentElement;
+    var content = work.querySelector(".text");
+    
+    if (!content) {
+        content = document.createElement("div");
+        content.classList.add("text");
+        content.innerText = "这里是正文内容...";
+        work.appendChild(content);
+    }
+    
+    content.style.display = content.style.display === "block" ? "none" : "block";
+}
+</script>
 
 </body>
 </html>
