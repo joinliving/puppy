@@ -103,7 +103,7 @@
 
                 issues.forEach(issue => {
                     let title = issue.title;
-                    let body = issue.body.replace(/\n/g, "<br>");
+                    let body = decodeURIComponent(escape(window.atob(issue.body || "")));  // 处理乱码
                     let labels = issue.labels.map(label => label.name);
 
                     labels.forEach(label => categories.add(label));
