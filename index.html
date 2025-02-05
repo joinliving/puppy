@@ -7,8 +7,9 @@
     <style>
         @font-face {
             font-family: '京华老宋体';
-            src: url('https://your-font-url/jinghualaosongti.woff2') format('woff2');
+            src: url('https://your-font-url.woff2') format('woff2'); /* 确保字体可用 */
         }
+
         body {
             font-family: '京华老宋体', Arial, sans-serif;
             background: #fff;
@@ -16,57 +17,90 @@
             margin: 0;
             padding: 20px;
             position: relative;
+            color: rgb(83, 83, 86); /* 设置全局字体颜色 */
         }
-        h1 { font-size: 24px; }
-        .clock { position: absolute; top: 10px; left: 10px; font-size: 16px; }
-        .counter { position: absolute; top: 10px; right: 10px; font-size: 16px; }
 
-        /* 右上角 Pages 菜单 */
+        h1, h2, h3, p, .work, .content {
+            color: rgb(83, 83, 86);
+        }
+
+        .clock {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 16px;
+        }
+
+        .counter {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 16px;
+        }
+
+        /* 顶部分类按钮 */
         .menu {
             position: absolute;
-            top: 40px;
+            top: 50px; /* 移动 Pages 菜单，避免与访问数重叠 */
             right: 10px;
         }
+
         .menu button {
             background: #333;
             color: #fff;
             border: none;
             padding: 8px 12px;
             cursor: pointer;
+            border-radius: 5px;
         }
+
         .dropdown {
             display: none;
             position: absolute;
+            top: 40px;
             right: 0;
             background: #fff;
-            border: 1px solid #ccc;
-            padding: 10px;
-            text-align: left;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
         }
-        .menu:hover .dropdown { display: block; }
+
+        .dropdown a {
+            display: block;
+            padding: 10px;
+            text-decoration: none;
+            color: rgb(83, 83, 86);
+        }
+
+        .dropdown a:hover {
+            background: #ddd;
+        }
 
         /* 分类导航 */
         .nav {
-            margin-top: 50px;
+            background: #333;
+            padding: 10px;
+            margin-bottom: 20px;
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
         }
+
         .nav button {
             margin: 5px;
             padding: 8px 12px;
             background: #555;
-            color: #fff;
             border: none;
+            color: #fff;
+            border-radius: 5px;
             cursor: pointer;
+            transition: 0.3s;
         }
-        .nav button:hover { background: #777; }
 
-        .content { display: none; white-space: pre-line; margin-top: 10px; }
-        .footer { margin-top: 20px; font-size: 14px; color: gray; }
+        .nav button:hover {
+            background: #777;
+        }
 
-        /* 作品样式 */
-        .work {
+        .post {
             border-bottom: 1px solid #ddd;
             padding: 10px;
             margin: 10px auto;
@@ -74,22 +108,51 @@
             max-width: 600px;
             text-align: left;
         }
-        img { max-width: 100%; height: auto; display: block; margin: 10px auto; }
+
+        .post h2 {
+            font-size: 18px;
+            margin: 0;
+        }
+
+        .post .content {
+            display: none;
+            white-space: pre-line;
+            margin-top: 10px;
+        }
+
+        .post button {
+            display: block;
+            margin-top: 5px;
+        }
+
+        .footer {
+            margin-top: 20px;
+            font-size: 14px;
+            color: gray;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 10px auto;
+        }
     </style>
 </head>
-<body oncontextmenu="return false;">
+<body oncontextmenu="return false;" onselectstart="return false;" ondragstart="return false;">
     <div class="clock" id="clock">时间加载中...</div>
     <div class="counter">访问量：<span id="viewCount">加载中...</span></div>
 
-    <!-- 右上角 Pages -->
+    <!-- 分类导航 -->
     <div class="menu">
-        <button>Pages</button>
-        <div class="dropdown">
-            <div class="nav" id="categoryNav"></div>
-        </div>
+        <button onclick="toggleMenu()">Pages</button>
+        <div class="dropdown" id="menuDropdown"></div>
     </div>
 
+    <div class="nav" id="categoryNav"></div>
+
     <h1>小狗创作中</h1>
+
     <h2>最新作品</h2>
     <div id="content">加载中...</div>
 
@@ -97,7 +160,8 @@
 
     <script>
         function updateClock() {
-            document.getElementById('clock').textContent = new Date().toLocaleTimeString();
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleTimeString();
         }
         setInterval(updateClock, 1000);
         updateClock();
@@ -105,6 +169,11 @@
         if (!localStorage.viewCount) localStorage.viewCount = 0;
         localStorage.viewCount = parseInt(localStorage.viewCount) + 1;
         document.getElementById("viewCount").textContent = localStorage.viewCount;
+
+        function toggleMenu() {
+            const menu = document.getElementById("menuDropdown");
+            menu.style.display = menu.style.display === "block" ? "none" : "block";
+        }
 
         async function fetchIssues() {
             const username = "joinliving";
@@ -116,70 +185,75 @@
                 const issues = await response.json();
                 const contentDiv = document.getElementById("content");
                 const categoryNav = document.getElementById("categoryNav");
+                const menuDropdown = document.getElementById("menuDropdown");
 
                 contentDiv.innerHTML = "";
-                categoryNav.innerHTML = '<button onclick="filterCategory(\'全部\')">全部</button>';
+                categoryNav.innerHTML = '<button onclick="showAll()">全部</button>'; // 添加“全部”按钮
 
                 let categories = {};
 
                 issues.forEach(issue => {
-                    const category = issue.labels.length > 0 ? issue.labels[0].name : "未分类";
-                    if (!categories[category]) categories[category] = [];
-                    categories[category].push(issue);
+                    const labels = issue.labels.map(label => label.name);
+                    labels.forEach(label => {
+                        if (!categories[label]) categories[label] = [];
+                        categories[label].push(issue);
+                    });
                 });
 
-                Object.keys(categories).forEach(category => {
+                for (let category in categories) {
                     const categoryButton = document.createElement("button");
                     categoryButton.textContent = category;
-                    categoryButton.onclick = () => filterCategory(category);
-                    categoryNav.appendChild(categoryButton);
-                });
-
-                issues.forEach(issue => {
-                    const category = issue.labels.length > 0 ? issue.labels[0].name : "未分类";
-
-                    const workDiv = document.createElement("div");
-                    workDiv.classList.add("work");
-                    workDiv.dataset.category = category;
-
-                    const title = document.createElement("h2");
-                    title.textContent = issue.title;
-
-                    const content = document.createElement("div");
-                    content.classList.add("content");
-                    content.style.display = "none";
-                    content.innerHTML = issue.body.replace(/\n/g, "<br>").replace(/!\[.*?\]\((.*?)\)/g, '<img src="$1">');
-
-                    const toggleButton = document.createElement("button");
-                    toggleButton.textContent = "展开正文";
-                    toggleButton.onclick = function () {
-                        if (content.style.display === "none") {
-                            content.style.display = "block";
-                            toggleButton.textContent = "收起正文";
-                        } else {
-                            content.style.display = "none";
-                            toggleButton.textContent = "展开正文";
-                        }
+                    categoryButton.onclick = function () {
+                        showCategory(category);
                     };
+                    categoryNav.appendChild(categoryButton);
+                }
 
-                    workDiv.appendChild(title);
-                    workDiv.appendChild(toggleButton);
-                    workDiv.appendChild(content);
-                    contentDiv.appendChild(workDiv);
-                });
+                for (let category in categories) {
+                    categories[category].forEach(issue => {
+                        const post = document.createElement("div");
+                        post.classList.add("post");
+                        post.dataset.category = category;
 
+                        const title = document.createElement("h2");
+                        title.textContent = issue.title;
+
+                        const content = document.createElement("div");
+                        content.classList.add("content");
+                        content.innerHTML = issue.body.replace(/\n/g, "<br>").replace(/!\[.*?\]\((.*?)\)/g, '<img src="$1">');
+
+                        const toggleButton = document.createElement("button");
+                        toggleButton.textContent = "展开正文";
+                        toggleButton.onclick = function () {
+                            if (content.style.display === "none" || content.style.display === "") {
+                                content.style.display = "block";
+                                toggleButton.textContent = "收起正文";
+                            } else {
+                                content.style.display = "none";
+                                toggleButton.textContent = "展开正文";
+                            }
+                        };
+
+                        post.appendChild(title);
+                        post.appendChild(toggleButton);
+                        post.appendChild(content);
+                        contentDiv.appendChild(post);
+                    });
+                }
             } catch (error) {
                 document.getElementById("content").textContent = "加载失败，请检查 GitHub 配置";
             }
         }
 
-        function filterCategory(category) {
-            document.querySelectorAll(".work").forEach(work => {
-                if (category === "全部" || work.dataset.category === category) {
-                    work.style.display = "block";
-                } else {
-                    work.style.display = "none";
-                }
+        function showCategory(category) {
+            document.querySelectorAll(".post").forEach(post => {
+                post.style.display = post.dataset.category === category ? "block" : "none";
+            });
+        }
+
+        function showAll() {
+            document.querySelectorAll(".post").forEach(post => {
+                post.style.display = "block";
             });
         }
 
