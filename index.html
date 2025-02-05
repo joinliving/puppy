@@ -4,212 +4,134 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>小狗创作中</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC&display=swap">
     <style>
-        @font-face {
-            font-family: 'JinghuaSong';
-            src: url('https://your-font-url.com/JinghuaSong.woff2') format('woff2');
-        }
-
         body {
-            font-family: 'JinghuaSong', Arial, sans-serif;
-            background: #fff;
+            font-family: 'Noto Serif SC', '京华老宋体', serif;
             text-align: center;
+            background-color: #f8f8f8;
             margin: 0;
-            padding: 20px;
-            position: relative;
+            padding: 0;
         }
-
-        h1 {
+        #header {
             font-size: 24px;
+            font-weight: bold;
+            margin-top: 20px;
         }
-
-        .clock {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            font-size: 16px;
-        }
-
-        .counter {
-            position: absolute;
-            top: 10px;
+        #menu {
+            position: fixed;
+            top: 60px; /* 让菜单下移，避免与访问量重叠 */
             right: 10px;
-            font-size: 16px;
-        }
-
-        /* Pages 按钮 */
-        .pages-menu {
-            position: absolute;
-            top: 50px;
-            right: 10px;
-            font-size: 16px;
-            background: #333;
+            background: black;
             color: white;
-            padding: 5px 10px;
+            padding: 10px;
             border-radius: 5px;
             cursor: pointer;
         }
-
-        .dropdown {
+        #dropdown {
             display: none;
             position: absolute;
-            right: 10px;
-            top: 80px;
-            background: #222;
-            border-radius: 5px;
-            width: 150px;
-            text-align: left;
-            z-index: 1000;
-        }
-
-        .dropdown a {
-            display: block;
+            top: 100%;
+            right: 0;
+            background: black;
             color: white;
-            text-decoration: none;
-            padding: 8px;
-            border-bottom: 1px solid #444;
+            padding: 5px;
+            list-style: none;
+            width: 150px;
         }
-
-        .dropdown a:hover {
+        #dropdown li {
+            padding: 5px;
+            cursor: pointer;
+        }
+        #dropdown li:hover {
             background: #444;
         }
-
-        .show {
-            display: block;
-        }
-
         .post {
-            border-bottom: 1px solid #ddd;
-            padding: 10px;
+            background: white;
             margin: 10px auto;
-            width: 90%;
+            padding: 10px;
+            border-radius: 5px;
+            width: 80%;
             max-width: 600px;
-            text-align: left;
-        }
-
-        .post h2 {
-            font-size: 18px;
-            margin: 0;
-        }
-
-        .post .content {
-            display: none;
-            white-space: pre-line;
-            margin-top: 10px;
-        }
-
-        .post button {
-            display: block;
-            margin-top: 5px;
-        }
-
-        .footer {
-            margin-top: 20px;
-            font-size: 14px;
-            color: gray;
         }
     </style>
 </head>
-<body oncontextmenu="return false;" onselectstart="return false;" ondragstart="return false;">
+<body>
 
-    <div class="clock" id="clock">时间加载中...</div>
-    <div class="counter">访问量：<span id="viewCount">加载中...</span></div>
+    <div id="header">小狗创作中</div>
+    <p>最新作品</p>
 
-    <div class="pages-menu" onclick="toggleMenu()">Pages</div>
-    <div class="dropdown" id="pagesDropdown">
-        <a href="#" onclick="filterContent('小说-同人')">小说-同人</a>
-        <a href="#" onclick="filterContent('小说-原创')">小说-原创</a>
-        <a href="#" onclick="filterContent('画画-同人')">画画-同人</a>
-        <a href="#" onclick="filterContent('画画-原创')">画画-原创</a>
-        <a href="#" onclick="filterContent('画画-课程跟画')">画画-课程跟画</a>
-        <a href="#" onclick="filterContent('画画-自设')">画画-自设</a>
-        <a href="#" onclick="filterContent('画画-稿件')">画画-稿件</a>
-        <a href="#" onclick="filterContent('小说-稿件')">小说-稿件</a>
-        <a href="#" onclick="filterContent('画画-水印')">画画-水印</a>
+    <div id="menu">
+        Pages ▼
+        <ul id="dropdown">
+            <li onclick="filterContent('小说-同人')">小说-同人</li>
+            <li onclick="filterContent('小说-原创')">小说-原创</li>
+            <li onclick="filterContent('画画-同人')">画画-同人</li>
+            <li onclick="filterContent('画画-原创')">画画-原创</li>
+            <li onclick="filterContent('画画-课程跟画')">画画-课程跟画</li>
+            <li onclick="filterContent('画画-自设')">画画-自设</li>
+            <li onclick="filterContent('画画-稿件')">画画-稿件</li>
+            <li onclick="filterContent('小说-稿件')">小说-稿件</li>
+            <li onclick="filterContent('画画-水印')">画画-水印</li>
+        </ul>
     </div>
 
-    <h1>小狗创作中</h1>
-    <h2>最新作品</h2>
-    <div id="content">加载中...</div>
-    
-    <div class="footer">联系方式：oloiyy@163.com</div>
+    <div id="content">
+        <div class="post" data-category="小说-同人">
+            <h3>苏苏1</h3>
+            <button onclick="toggleContent(this)">展开正文</button>
+            <p style="display: none;">这里是苏苏1的正文内容。</p>
+        </div>
+        <div class="post" data-category="小说-同人">
+            <h3>小玉3</h3>
+            <button onclick="toggleContent(this)">展开正文</button>
+            <p style="display: none;">这里是小玉3的正文内容。</p>
+        </div>
+        <div class="post" data-category="小说-原创">
+            <h3>小玉2</h3>
+            <button onclick="toggleContent(this)">展开正文</button>
+            <p style="display: none;">这里是小玉2的正文内容。</p>
+        </div>
+        <div class="post" data-category="小说-同人">
+            <h3>有谁想拯救世界吗？（成小玉）</h3>
+            <button onclick="toggleContent(this)">展开正文</button>
+            <p style="display: none;">这里是成小玉的正文内容。</p>
+        </div>
+    </div>
+
+    <p>联系方式：oloiyy@163.com</p>
 
     <script>
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('clock').textContent = now.toLocaleTimeString();
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
+        document.getElementById("menu").addEventListener("click", function () {
+            let dropdown = document.getElementById("dropdown");
+            dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+        });
 
-        if (!localStorage.viewCount) localStorage.viewCount = 0;
-        localStorage.viewCount = parseInt(localStorage.viewCount) + 1;
-        document.getElementById("viewCount").textContent = localStorage.viewCount;
-
-        function toggleMenu() {
-            document.getElementById("pagesDropdown").classList.toggle("show");
-        }
-
-        async function fetchIssues() {
-            const username = "joinliving";
-            const repo = "puppy";
-            const url = `https://api.github.com/repos/${username}/${repo}/issues?state=open`;
-
-            try {
-                const response = await fetch(url);
-                const issues = await response.json();
-                const contentDiv = document.getElementById("content");
-                contentDiv.innerHTML = "";
-
-                issues.forEach(issue => {
-                    const post = document.createElement("div");
-                    post.classList.add("post");
-                    post.setAttribute("data-category", issue.labels.map(label => label.name).join(" "));
-
-                    const title = document.createElement("h2");
-                    title.textContent = issue.title;
-
-                    const content = document.createElement("p");
-                    content.classList.add("content");
-                    let bodyHtml = issue.body.replace(/\n/g, "<br>");
-                    bodyHtml = bodyHtml.replace(/!\[.*?\]\((.*?)\)/g, '<img src="$1">');
-
-                    content.innerHTML = bodyHtml;
-
-                    const toggleButton = document.createElement("button");
-                    toggleButton.textContent = "展开正文";
-                    toggleButton.onclick = function () {
-                        if (content.style.display === "none" || content.style.display === "") {
-                            content.style.display = "block";
-                            toggleButton.textContent = "收起正文";
-                        } else {
-                            content.style.display = "none";
-                            toggleButton.textContent = "展开正文";
-                        }
-                    };
-
-                    post.appendChild(title);
-                    post.appendChild(toggleButton);
-                    post.appendChild(content);
-                    contentDiv.appendChild(post);
-                });
-
-            } catch (error) {
-                document.getElementById("content").textContent = "加载失败，请检查 GitHub 配置";
-            }
+        function toggleContent(button) {
+            let content = button.nextElementSibling;
+            content.style.display = content.style.display === "none" ? "block" : "none";
         }
 
         function filterContent(category) {
-            document.querySelectorAll(".post").forEach(post => {
-                if (post.getAttribute("data-category").includes(category)) {
+            let posts = document.querySelectorAll(".post");
+            let hasMatch = false;
+            
+            posts.forEach(post => {
+                let categories = post.getAttribute("data-category");
+                if (categories && categories.includes(category)) {
                     post.style.display = "block";
+                    hasMatch = true;
                 } else {
                     post.style.display = "none";
                 }
             });
-        }
 
-        fetchIssues();
+            let contentDiv = document.getElementById("content");
+            if (!hasMatch) {
+                contentDiv.innerHTML = `<p>该分类暂无内容。</p>`;
+            }
+        }
     </script>
+
 </body>
 </html>
