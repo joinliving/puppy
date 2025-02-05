@@ -5,118 +5,185 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>小狗创作中</title>
     <style>
-        body {
-            font-family: "京华老宋体", sans-serif;
-            background-color: #ffffff;
-            text-align: center;
+        @font-face {
+            font-family: '京华老宋体';
+            src: url('https://your-font-url/jinghualaosongti.woff2') format('woff2');
         }
+        body {
+            font-family: '京华老宋体', Arial, sans-serif;
+            background: #fff;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            position: relative;
+        }
+        h1 { font-size: 24px; }
+        .clock { position: absolute; top: 10px; left: 10px; font-size: 16px; }
+        .counter { position: absolute; top: 10px; right: 10px; font-size: 16px; }
+
+        /* 右上角 Pages 菜单 */
         .menu {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            background-color: black;
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
+            top: 40px;
+            right: 10px;
+        }
+        .menu button {
+            background: #333;
+            color: #fff;
+            border: none;
+            padding: 8px 12px;
             cursor: pointer;
         }
         .dropdown {
             display: none;
             position: absolute;
-            top: 50px;
-            right: 20px;
-            background-color: black;
-            color: white;
+            right: 0;
+            background: #fff;
+            border: 1px solid #ccc;
             padding: 10px;
-            border-radius: 5px;
-        }
-        .dropdown button {
-            display: block;
-            width: 100%;
-            background: none;
-            border: none;
-            color: white;
-            padding: 5px;
-            cursor: pointer;
             text-align: left;
         }
-        .content {
-            margin-top: 80px;
+        .menu:hover .dropdown { display: block; }
+
+        /* 分类导航 */
+        .nav {
+            margin-top: 50px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
         }
+        .nav button {
+            margin: 5px;
+            padding: 8px 12px;
+            background: #555;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        .nav button:hover { background: #777; }
+
+        .content { display: none; white-space: pre-line; margin-top: 10px; }
+        .footer { margin-top: 20px; font-size: 14px; color: gray; }
+
+        /* 作品样式 */
         .work {
-            display: none;
-            background: #f0f0f0;
-            margin: 10px;
+            border-bottom: 1px solid #ddd;
             padding: 10px;
-            border-radius: 5px;
+            margin: 10px auto;
+            width: 90%;
+            max-width: 600px;
+            text-align: left;
         }
-        .work.active {
-            display: block;
-        }
+        img { max-width: 100%; height: auto; display: block; margin: 10px auto; }
     </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
+    <div class="clock" id="clock">时间加载中...</div>
+    <div class="counter">访问量：<span id="viewCount">加载中...</span></div>
 
-<h1>小狗创作中</h1>
-<div class="menu" onclick="toggleMenu()">Pages</div>
-<div class="dropdown" id="menu">
-    <button onclick="filterCategory('全部')">全部</button>
-    <button onclick="filterCategory('小说-同人')">小说-同人</button>
-    <button onclick="filterCategory('小说-原创')">小说-原创</button>
-    <button onclick="filterCategory('画画-同人')">画画-同人</button>
-    <button onclick="filterCategory('画画-原创')">画画-原创</button>
-    <button onclick="filterCategory('画画-课程跟画')">画画-课程跟画</button>
-    <button onclick="filterCategory('画画-自设')">画画-自设</button>
-    <button onclick="filterCategory('画画-稿件')">画画-稿件</button>
-    <button onclick="filterCategory('小说-稿件')">小说-稿件</button>
-    <button onclick="filterCategory('画画-水印')">画画-水印</button>
-</div>
+    <!-- 右上角 Pages -->
+    <div class="menu">
+        <button>Pages</button>
+        <div class="dropdown">
+            <div class="nav" id="categoryNav"></div>
+        </div>
+    </div>
 
-<div class="content">
-    <div class="work" data-category="小说-同人">小玉3 <button onclick="toggleText(this)">展开正文</button></div>
-    <div class="work" data-category="小说-原创">苏苏1 <button onclick="toggleText(this)">展开正文</button></div>
-    <div class="work" data-category="小说-原创">小玉2 <button onclick="toggleText(this)">展开正文</button></div>
-    <div class="work" data-category="小说-同人">有谁想拯救世界吗？（成小玉） <button onclick="toggleText(this)">展开正文</button></div>
-    <div class="work" data-category="画画-原创">原创插画1 <button onclick="toggleText(this)">展开正文</button></div>
-    <div class="work" data-category="画画-自设">角色设定 <button onclick="toggleText(this)">展开正文</button></div>
-</div>
+    <h1>小狗创作中</h1>
+    <h2>最新作品</h2>
+    <div id="content">加载中...</div>
 
-<script>
-function toggleMenu() {
-    var menu = document.getElementById("menu");
-    menu.style.display = menu.style.display === "block" ? "none" : "block";
-}
+    <div class="footer">联系方式：oloiyy@163.com</div>
 
-function filterCategory(category) {
-    var works = document.querySelectorAll(".work");
+    <script>
+        function updateClock() {
+            document.getElementById('clock').textContent = new Date().toLocaleTimeString();
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
 
-    if (category === "全部") {
-        works.forEach(work => work.classList.add("active"));
-    } else {
-        works.forEach(work => {
-            if (work.getAttribute("data-category") === category) {
-                work.classList.add("active");
-            } else {
-                work.classList.remove("active");
+        if (!localStorage.viewCount) localStorage.viewCount = 0;
+        localStorage.viewCount = parseInt(localStorage.viewCount) + 1;
+        document.getElementById("viewCount").textContent = localStorage.viewCount;
+
+        async function fetchIssues() {
+            const username = "joinliving";
+            const repo = "puppy";
+            const url = `https://api.github.com/repos/${username}/${repo}/issues?state=open`;
+
+            try {
+                const response = await fetch(url);
+                const issues = await response.json();
+                const contentDiv = document.getElementById("content");
+                const categoryNav = document.getElementById("categoryNav");
+
+                contentDiv.innerHTML = "";
+                categoryNav.innerHTML = '<button onclick="filterCategory(\'全部\')">全部</button>';
+
+                let categories = {};
+
+                issues.forEach(issue => {
+                    const category = issue.labels.length > 0 ? issue.labels[0].name : "未分类";
+                    if (!categories[category]) categories[category] = [];
+                    categories[category].push(issue);
+                });
+
+                Object.keys(categories).forEach(category => {
+                    const categoryButton = document.createElement("button");
+                    categoryButton.textContent = category;
+                    categoryButton.onclick = () => filterCategory(category);
+                    categoryNav.appendChild(categoryButton);
+                });
+
+                issues.forEach(issue => {
+                    const category = issue.labels.length > 0 ? issue.labels[0].name : "未分类";
+
+                    const workDiv = document.createElement("div");
+                    workDiv.classList.add("work");
+                    workDiv.dataset.category = category;
+
+                    const title = document.createElement("h2");
+                    title.textContent = issue.title;
+
+                    const content = document.createElement("div");
+                    content.classList.add("content");
+                    content.style.display = "none";
+                    content.innerHTML = issue.body.replace(/\n/g, "<br>").replace(/!\[.*?\]\((.*?)\)/g, '<img src="$1">');
+
+                    const toggleButton = document.createElement("button");
+                    toggleButton.textContent = "展开正文";
+                    toggleButton.onclick = function () {
+                        if (content.style.display === "none") {
+                            content.style.display = "block";
+                            toggleButton.textContent = "收起正文";
+                        } else {
+                            content.style.display = "none";
+                            toggleButton.textContent = "展开正文";
+                        }
+                    };
+
+                    workDiv.appendChild(title);
+                    workDiv.appendChild(toggleButton);
+                    workDiv.appendChild(content);
+                    contentDiv.appendChild(workDiv);
+                });
+
+            } catch (error) {
+                document.getElementById("content").textContent = "加载失败，请检查 GitHub 配置";
             }
-        });
-    }
-}
+        }
 
-function toggleText(button) {
-    var work = button.parentElement;
-    var content = work.querySelector(".text");
-    
-    if (!content) {
-        content = document.createElement("div");
-        content.classList.add("text");
-        content.innerText = "这里是正文内容...";
-        work.appendChild(content);
-    }
-    
-    content.style.display = content.style.display === "block" ? "none" : "block";
-}
-</script>
+        function filterCategory(category) {
+            document.querySelectorAll(".work").forEach(work => {
+                if (category === "全部" || work.dataset.category === category) {
+                    work.style.display = "block";
+                } else {
+                    work.style.display = "none";
+                }
+            });
+        }
 
+        fetchIssues();
+    </script>
 </body>
 </html>
