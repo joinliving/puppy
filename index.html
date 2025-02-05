@@ -6,143 +6,148 @@
     <title>小狗创作中</title>
     <style>
         body {
-            font-family: "京华老宋体", serif;
-            background-color: #fff;
+            font-family: "京华老宋体", Arial, sans-serif;
+            background: #fff;
             color: rgb(83, 83, 86);
             text-align: center;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px;
-            font-size: 18px;
-        }
-        .pages-menu {
+            margin: 0;
+            padding: 20px;
             position: relative;
-            display: inline-block;
         }
-        .pages-btn {
-            background-color: #333;
-            color: white;
-            padding: 8px;
-            border: none;
-            cursor: pointer;
-        }
-        .pages-content {
-            display: none;
-            position: absolute;
-            background-color: white;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            z-index: 10;
-        }
-        .pages-content a {
-            color: black;
-            padding: 8px;
-            display: block;
-            text-decoration: none;
-        }
-        .pages-content a:hover {
-            background-color: #ddd;
-        }
-        .work {
-            margin: 20px auto;
-            padding: 10px;
-            border: 1px solid #ddd;
-            max-width: 600px;
-            background: #f9f9f9;
-        }
-        button {
-            margin-top: 5px;
-            padding: 5px 10px;
-            background: #535356;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
+        h1 { font-size: 24px; margin-bottom: 10px; }
+        h2 { font-size: 20px; margin: 20px 0 10px; }
+        .clock { position: absolute; top: 10px; left: 10px; font-size: 16px; }
+        .counter { position: absolute; top: 10px; right: 10px; font-size: 16px; }
+        .post { border-bottom: 1px solid #ddd; padding: 10px; margin: 10px auto; width: 90%; max-width: 600px; text-align: left; }
+        .post h2 { font-size: 18px; margin: 0; }
+        .post .content { display: none; white-space: pre-line; margin-top: 10px; }
+        .post button { display: block; margin-top: 5px; }
+        .footer { margin-top: 20px; font-size: 14px; color: gray; }
+        img { max-width: 100%; height: auto; display: block; margin: 10px auto; }
+        /* 菜单样式 */
+        .menu { position: fixed; top: 40px; right: 10px; background: #333; color: #fff; padding: 5px; border-radius: 5px; }
+        .menu h3 { margin: 0; cursor: pointer; }
+        .menu ul { list-style: none; padding: 0; margin: 0; display: none; background: #444; border-radius: 5px; }
+        .menu ul li { padding: 5px 10px; cursor: pointer; border-bottom: 1px solid #555; }
+        .menu ul li:hover { background: #555; }
+        .menu ul li:last-child { border-bottom: none; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <span id="clock"></span>
-        <span>访问量：<span id="visitor-count">0</span></span>
-        <div class="pages-menu">
-            <button class="pages-btn" onclick="togglePages()">Pages</button>
-            <div class="pages-content" id="pages-list"></div>
-        </div>
-    </div>
 
+    <div class="clock" id="clock">00:00:00</div>
+    <div class="counter">访问量：<span id="visit-count">0</span></div>
+    
     <h1>小狗创作中</h1>
     <h2>最新作品</h2>
+    
+    <div class="menu">
+        <h3 onclick="toggleMenu()">Pages</h3>
+        <ul id="category-list">
+            <li onclick="filterCategory('全部')">全部</li>
+        </ul>
+    </div>
 
-    <div id="content"></div>
+    <div id="posts"></div>
 
-    <p>联系方式：oloiyy@163.com</p>
+    <div class="footer">
+        联系方式：oloiyy@163.com
+    </div>
 
     <script>
         function updateClock() {
-            document.getElementById("clock").innerText = new Date().toLocaleTimeString();
+            const now = new Date();
+            document.getElementById('clock').innerText =
+                now.getHours().toString().padStart(2, '0') + ":" +
+                now.getMinutes().toString().padStart(2, '0') + ":" +
+                now.getSeconds().toString().padStart(2, '0');
         }
         setInterval(updateClock, 1000);
         updateClock();
 
-        function togglePages() {
-            let menu = document.getElementById("pages-list");
-            menu.style.display = menu.style.display === "block" ? "none" : "block";
-        }
-
-        async function fetchGitHubData() {
-            const repo = "joinliving/puppy";
-            const apiUrl = `https://api.github.com/repos/${repo}/issues?state=open&per_page=100`;
-
-            try {
-                let response = await fetch(apiUrl);
-                let issues = await response.json();
-
-                let categories = new Set();
-                let contentDiv = document.getElementById("content");
-
-                issues.forEach(issue => {
-                    let title = issue.title;
-                    let body = decodeURIComponent(escape(window.atob(issue.body || "")));  // 处理乱码
-                    let labels = issue.labels.map(label => label.name);
-
-                    labels.forEach(label => categories.add(label));
-
-                    let workDiv = document.createElement("div");
-                    workDiv.className = "work";
-                    workDiv.setAttribute("data-category", labels.join(" "));
-
-                    workDiv.innerHTML = `${title} <button onclick="toggleText(this)">展开正文</button><div style="display:none;">${body}</div>`;
-                    contentDiv.appendChild(workDiv);
-                });
-
-                updatePagesMenu(Array.from(categories));
-            } catch (error) {
-                console.error("获取 GitHub Issues 失败", error);
-            }
+        function toggleMenu() {
+            const menu = document.getElementById('category-list');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
         }
 
         function toggleText(button) {
-            let content = button.nextElementSibling;
-            content.style.display = content.style.display === "none" ? "block" : "none";
-        }
-
-        function updatePagesMenu(categories) {
-            let pagesList = document.getElementById("pages-list");
-            pagesList.innerHTML = `<a href="#" onclick="filterCategory('全部')">全部</a>`;
-            categories.forEach(category => {
-                pagesList.innerHTML += `<a href="#" onclick="filterCategory('${category}')">${category}</a>`;
-            });
+            const content = button.nextElementSibling;
+            content.style.display = content.style.display === 'block' ? 'none' : 'block';
         }
 
         function filterCategory(category) {
-            let works = document.querySelectorAll(".work");
-            works.forEach(work => {
-                work.style.display = category === "全部" || work.getAttribute("data-category").includes(category) ? "block" : "none";
+            const posts = document.querySelectorAll('.post');
+            posts.forEach(post => {
+                if (category === '全部' || post.dataset.category === category) {
+                    post.style.display = 'block';
+                } else {
+                    post.style.display = 'none';
+                }
             });
         }
 
-        fetchGitHubData();
+        async function loadContent() {
+            const repo = "joinliving/puppy";
+            const response = await fetch(`https://api.github.com/repos/${repo}/contents/`);
+            const data = await response.json();
+
+            const postsContainer = document.getElementById("posts");
+            const categoryList = document.getElementById("category-list");
+            const categories = new Set();
+
+            for (const folder of data) {
+                if (folder.type === "dir") {
+                    const subResponse = await fetch(folder.url);
+                    const subData = await subResponse.json();
+
+                    subData.forEach(file => {
+                        if (file.type === "file" && file.name.endsWith(".txt")) {
+                            const category = folder.name;
+                            categories.add(category);
+                            fetch(file.download_url)
+                                .then(res => res.text())
+                                .then(content => {
+                                    const postDiv = document.createElement("div");
+                                    postDiv.className = "post";
+                                    postDiv.dataset.category = category;
+
+                                    postDiv.innerHTML = `
+                                        <h2>${file.name.replace(".txt", "")}</h2>
+                                        <button onclick="toggleText(this)">展开正文</button>
+                                        <div class="content">${content}</div>
+                                    `;
+
+                                    postsContainer.appendChild(postDiv);
+                                });
+                        }
+
+                        if (file.type === "file" && (file.name.endsWith(".png") || file.name.endsWith(".jpg") || file.name.endsWith(".jpeg"))) {
+                            const imgDiv = document.createElement("div");
+                            imgDiv.className = "post";
+                            imgDiv.dataset.category = folder.name;
+                            
+                            imgDiv.innerHTML = `
+                                <h2>${file.name}</h2>
+                                <img src="${file.download_url}" alt="${file.name}">
+                            `;
+
+                            postsContainer.appendChild(imgDiv);
+                        }
+                    });
+                }
+            }
+
+            categories.forEach(category => {
+                const li = document.createElement("li");
+                li.innerText = category;
+                li.onclick = () => filterCategory(category);
+                categoryList.appendChild(li);
+            });
+
+            document.getElementById("visit-count").innerText = Math.floor(Math.random() * 100) + 1;
+        }
+
+        loadContent();
     </script>
 </body>
 </html>
